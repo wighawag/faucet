@@ -4,6 +4,7 @@
 	"private": true,
 	"type": "module",
 	"devDependencies": {
+		"@prosopo/svelte-procaptcha-wrapper": "^1.1.44",
 		"@sveltejs/vite-plugin-svelte": "^7.0.0",
 		"prettier": "^3.8.1",
 		"prettier-plugin-svelte": "^3.4.1",

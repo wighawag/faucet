@@ -5,6 +5,7 @@ import {hc} from 'hono/client';
 import {HTTPException} from 'hono/http-exception';
 import {Env} from './env.js';
 import {getDummyAPI} from './api/dummy.js';
+import {getCaptchaAPI} from './api/captcha.js';
 
 export type {Env};
 
@@ -30,10 +31,12 @@ export function createServer<CustomEnv extends Env>(
 	const app = new Hono<{Bindings: CustomEnv}>();
 
 	const dummy = getDummyAPI(options);
+	const captcha = getCaptchaAPI(options);
 
 	return app
 		.use('/api/*', corsSetup)
 		.route('/api/', dummy)
+		.route('/api/captcha', captcha)
 		.onError((err, c) => {
 			const config = c.get('config');
 			const env = config?.env || {};
