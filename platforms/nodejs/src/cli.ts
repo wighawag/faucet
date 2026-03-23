@@ -2,6 +2,7 @@
 import "named-logs-context";
 import { createServer, type Env } from "template-agnostic-server-app";
 import { serve } from "@hono/node-server";
+import { serveStatic } from "@hono/node-server/serve-static";
 import { RemoteLibSQL } from "remote-sql-libsql";
 import { createClient } from "@libsql/client";
 import fs from "node:fs";
@@ -26,10 +27,10 @@ async function main() {
   const program = new Command();
 
   program
-    .name("template-agnostic-server-nodejs")
+    .name("faucet-nodejs")
     .version(pkg.version)
-    .usage(`template-agnostic-server-nodejs [--port 2000] [--sql <sql-folder>]`)
-    .description("run template-agnostic-server-nodejs as a node process")
+    .usage(`faucet-nodejs [--port 2000]`)
+    .description("run faucet server as a node process")
     .option("-p, --port <port>");
 
   program.parse(process.argv);
@@ -50,10 +51,21 @@ async function main() {
   });
   const remoteSQL = new RemoteLibSQL(client);
 
+  // Create server app (includes API routes under /api)
   const app = createServer<NodeJSEnv>({
     getDB: () => remoteSQL,
     getEnv: () => env,
   });
+
+  // Serve static files if directory exists
+  const staticDir = path.join(__dirname, "../static");
+  if (fs.existsSync(staticDir)) {
+    // Serve static assets
+    app.use("/*", serveStatic({ root: "./static" }));
+
+    // Fallback to index.html for SPA (any request that didn't match static files)
+    app.get("*", serveStatic({ root: "./static", path: "/index.html" }));
+  }
 
   if (db === ":memory:") {
     // console.log(`executing setup...`);

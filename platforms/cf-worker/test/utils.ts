@@ -1,11 +1,19 @@
-import {env, createExecutionContext, waitOnExecutionContext} from 'cloudflare:test';
+import {
+	env,
+	createExecutionContext,
+	waitOnExecutionContext,
+} from 'cloudflare:test';
 import worker from '../src/worker';
 
 // For now, you'll need to do something like this to get a correctly-typed
 // `Request` to pass to `worker.fetch()`.
 export const IncomingRequest = Request<unknown, IncomingRequestCfProperties>;
 
-export async function fetchWorker(req: Request | string, init?: RequestInit, envOverride?: Record<string, string>) {
+export async function fetchWorker(
+	req: Request | string,
+	init?: RequestInit,
+	envOverride?: Record<string, string>,
+) {
 	let previousEnv: Record<string, string | undefined> | undefined;
 	if (envOverride) {
 		previousEnv = {};
@@ -23,9 +31,15 @@ export async function fetchWorker(req: Request | string, init?: RequestInit, env
 				request = new IncomingRequest(req, init as any); // TODO any
 			} else {
 				if (req.startsWith('/')) {
-					request = new IncomingRequest(`http://example.com${req}`, init as any); // TODO any
+					request = new IncomingRequest(
+						`http://example.com${req}`,
+						init as any,
+					); // TODO any
 				} else {
-					request = new IncomingRequest(`http://example.com/${req}`, init as any); // TODO any
+					request = new IncomingRequest(
+						`http://example.com/${req}`,
+						init as any,
+					); // TODO any
 				}
 			}
 		} else {

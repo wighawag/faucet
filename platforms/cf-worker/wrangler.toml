@@ -4,6 +4,10 @@ compatibility_date = "2023-08-14"
 
 compatibility_flags = [ "nodejs_compat" ] # for node:async_hooks
 
+# Static Assets - served by Cloudflare edge before Worker runs
+[assets]
+directory = "./static"
+
 [observability]
 enabled = true
 head_sampling_rate = 1 # optional. default = 1.

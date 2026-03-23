@@ -4,3 +4,6 @@ dist
 .dev.vars*
 !*.default
 contracts.json
+
+# Static assets (copied from frontend build)
+static/

@@ -1,3 +1,6 @@
 node_modules
 dist
 sqlite.db
+
+# Static assets (copied from frontend build)
+static/

@@ -1,6 +1,9 @@
 import {LogEvent, type Reporter} from 'workers-logger';
 
-export const consoleReporter: Reporter = async (events: LogEvent[], context: {req: Request; res: Response}) => {
+export const consoleReporter: Reporter = async (
+	events: LogEvent[],
+	context: {req: Request; res: Response},
+) => {
 	console.log(`reporting ${events.length} events`);
 	for (const event of events) {
 		if (event.error) {

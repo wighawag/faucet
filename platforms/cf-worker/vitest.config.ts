@@ -1,9 +1,15 @@
 import path from 'node:path';
-import {defineWorkersConfig, readD1Migrations} from '@cloudflare/vitest-pool-workers/config';
+import {
+	defineWorkersConfig,
+	readD1Migrations,
+} from '@cloudflare/vitest-pool-workers/config';
 
 export default defineWorkersConfig(async () => {
 	// Read all migrations in the `migrations` directory
-	const migrationsPath = path.join(__dirname, '../../packages/server/src/schema/sql');
+	const migrationsPath = path.join(
+		__dirname,
+		'../../packages/server/src/schema/sql',
+	);
 	const migrations = await readD1Migrations(migrationsPath);
 	return {
 		test: {

@@ -32,8 +32,8 @@ export function createServer<CustomEnv extends Env>(
 	const dummy = getDummyAPI(options);
 
 	return app
-		.use('/*', corsSetup)
-		.route('/', dummy)
+		.use('/api/*', corsSetup)
+		.route('/api/', dummy)
 		.onError((err, c) => {
 			const config = c.get('config');
 			const env = config?.env || {};

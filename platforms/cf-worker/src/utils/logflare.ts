@@ -1,6 +1,13 @@
 import type {LogEvent, LogLevels, Reporter} from 'workers-logger';
 
-const levelOrder: LogLevels[] = ['fatal', 'error', 'warn', 'debug', 'info', 'log'];
+const levelOrder: LogLevels[] = [
+	'fatal',
+	'error',
+	'warn',
+	'debug',
+	'info',
+	'log',
+];
 
 export const logflareReport: ({
 	apiKey,
@@ -11,7 +18,10 @@ export const logflareReport: ({
 	source: string;
 	batchAsSingleEvent?: boolean;
 }) => Reporter = ({batchAsSingleEvent, apiKey, source}) => {
-	return async (events: LogEvent[], {req, res}: {req: Request; res: Response}) => {
+	return async (
+		events: LogEvent[],
+		{req, res}: {req: Request; res: Response},
+	) => {
 		const url = new URL(req.url);
 
 		console.info(`reporting ${events.length} events on ${url.pathname}...`);
@@ -30,7 +40,11 @@ export const logflareReport: ({
 
 			let firstImportantEvent: LogEvent | undefined;
 			for (const event of events) {
-				if (!firstImportantEvent || levelOrder.indexOf(event.level) < levelOrder.indexOf(firstImportantEvent.level)) {
+				if (
+					!firstImportantEvent ||
+					levelOrder.indexOf(event.level) <
+						levelOrder.indexOf(firstImportantEvent.level)
+				) {
 					firstImportantEvent = event;
 				}
 			}
@@ -43,10 +57,15 @@ export const logflareReport: ({
 				};
 			}
 
-			if (Array.isArray(firstImportantEvent.messages) && firstImportantEvent.messages.length > 0) {
+			if (
+				Array.isArray(firstImportantEvent.messages) &&
+				firstImportantEvent.messages.length > 0
+			) {
 				const message = firstImportantEvent.messages[0];
 				firstMessage =
-					message && typeof message === 'object' && 'toString' in message ? message.toString() : '' + message;
+					message && typeof message === 'object' && 'toString' in message
+						? message.toString()
+						: '' + message;
 			}
 			const log_entry = `${res.status} ${req.url}: ${firstMessage}`;
 			try {
@@ -112,7 +131,10 @@ export const logflareReport: ({
 			body,
 		});
 		if (response.status !== 200) {
-			console.error(`${response.status} ${response.statusText}, ${await response.text()}`, {data: {events}});
+			console.error(
+				`${response.status} ${response.statusText}, ${await response.text()}`,
+				{data: {events}},
+			);
 		}
 		return response;
 	};
