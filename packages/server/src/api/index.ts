@@ -31,12 +31,12 @@ async function verifyProsopoCaptcha(
 	return result.verified === true;
 }
 
-export function getCaptchaAPI<CustomEnv extends Env>(
+export function getAPI<CustomEnv extends Env>(
 	options: ServerOptions<CustomEnv>,
 ) {
 	const app = new Hono<{Bindings: CustomEnv}>()
 		.use(setup({serverOptions: options}))
-		.post('/verify', async (c) => {
+		.post('/claim', async (c) => {
 			const config = c.get('config');
 			const env = config.env;
 

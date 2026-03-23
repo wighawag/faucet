@@ -25,7 +25,7 @@
 		error = '';
 
 		try {
-			const response = await fetch('/api/captcha/verify', {
+			const response = await fetch('/api/claim', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
