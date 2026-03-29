@@ -1,297 +1,254 @@
-# Template Agnostic Server
+# Faucet Server
 
-A template for building platform-agnostic servers that can run on Node.js, Cloudflare Workers, Bun, or any JavaScript runtime. The server has access to a database while remaining completely agnostic to the runtime environment.
+A configurable EVM faucet server that dispenses testnet/devnet tokens with Prosopo captcha protection. Supports multiple chains and deploys to Cloudflare Workers or Node.js.
 
-## Architecture
+## Quick Start
 
-```
-├── packages/
-│   └── server/          # Core server logic (platform-agnostic)
-│       ├── src/
-│       │   ├── index.ts      # Main server entry, exports createServer()
-│       │   ├── types.ts      # ServerOptions type definition
-│       │   ├── setup.ts      # Middleware for request context
-│       │   ├── env.ts        # Base environment type
-│       │   └── api/          # API route handlers
-│       └── src/schema/sql/   # SQL schema files
-│
-└── platforms/
-    ├── cf-worker/       # Cloudflare Workers platform adapter
-    └── nodejs/          # Node.js platform adapter
+Run a local faucet server with a single command:
+
+```bash
+npx faucet-server serve --port 3000
 ```
 
-### Key Concept: Dependency Injection
+Or install globally:
 
-The template achieves platform agnosticism through a simple dependency injection pattern. The core server doesn't know how to access the database or environment - it receives these through callbacks:
-
-```typescript
-export type ServerOptions<Env extends Bindings = Bindings> = {
-  getDB: (c: Context<{Bindings: Env}>) => RemoteSQL;
-  getEnv: (c: Context<{Bindings: Env}>) => Env;
-};
+```bash
+npm install -g faucet-server
+serve --port 3000
 ```
 
-Each platform provides its own implementation of these functions.
+**Configure via environment variables:**
 
-## Getting Started
+```bash
+# Required: Prosopo captcha keys (get from https://prosopo.io/)
+export PROSOPO_SITE_PRIVATE_KEY=your_secret_key
+export VITE_PROSOPO_SITE_KEY=your_site_key
+
+# Required: Wallet with funds to dispense
+export FAUCET_PRIVATE_KEY=0x...your_wallet_private_key
+
+# Required: Configure chains (format: amount_in_wei:rpc_endpoint)
+export CHAIN_31337=10000000000000000:http://localhost:8545
+export CHAIN_11155111=10000000000000000:https://eth-sepolia.g.alchemy.com/v2/KEY
+```
+
+Then access the faucet at: `http://localhost:3000?chainId=31337&address=0x...`
+
+## Features
+
+- 🔗 **Multi-chain support** — Configure any EVM chain via environment variables
+- 🤖 **Bot protection** — Integrated [Prosopo](https://prosopo.io/) captcha verification
+- 🚀 **Multiple deployment targets** — Cloudflare Workers or Node.js
+- ⚡ **Modern stack** — Svelte frontend, Hono API server, Viem for transactions
+- 📦 **Monorepo architecture** — Clean separation of frontend, server, and platform concerns
+
+---
+
+## Development
+
+Want to contribute or customize the faucet? Follow the development setup below.
 
 ### Prerequisites
 
-- Node.js (v18+)
-- pnpm
-- (Optional) zellij - for running multiple processes
+- [Node.js](https://nodejs.org/) >= 18
+- [pnpm](https://pnpm.io/) >= 8
+- A Prosopo account with site keys ([sign up](https://prosopo.io/))
+- An EVM wallet with funds for the faucet
 
 ### Installation
 
 ```bash
+# Clone the repository
+git clone https://github.com/wighawag/faucet.git
+cd faucet
+
+# Install dependencies
 pnpm install
 ```
 
-### Development
+### Configuration
 
-Run everything (requires zellij):
+#### Environment Variables
+
+The faucet requires configuration via environment variables. Copy the example files and fill in your values:
+
+**Frontend** ([`packages/frontend/.env`](packages/frontend/.env)):
+```bash
+VITE_PROSOPO_SITE_KEY=your_prosopo_site_key
+```
+
+**Server** (choose your platform):
+
+For Node.js ([`platforms/nodejs/.env`](platforms/nodejs/.env)):
+```bash
+PROSOPO_SITE_PRIVATE_KEY=your_prosopo_secret_key
+FAUCET_PRIVATE_KEY=0x...your_wallet_private_key
+CHAIN_31337=10000000000000000:http://localhost:8545
+```
+
+For Cloudflare Workers ([`platforms/cf-worker/.dev.vars`](platforms/cf-worker/.dev.vars.default)):
+```bash
+PROSOPO_SITE_PRIVATE_KEY=your_prosopo_secret_key
+FAUCET_PRIVATE_KEY=0x...your_wallet_private_key
+CHAIN_31337=10000000000000000:http://localhost:8545
+```
+
+#### Chain Configuration
+
+Chains are configured using the `CHAIN_<CHAIN_ID>` environment variable format:
+
+```
+CHAIN_<CHAIN_ID>=<amount_in_wei>:<rpc_endpoint>
+```
+
+**Examples:**
+```bash
+# Local development (anvil/hardhat)
+CHAIN_31337=10000000000000000:http://localhost:8545
+
+# Sepolia testnet (0.01 ETH)
+CHAIN_11155111=10000000000000000:https://eth-sepolia.g.alchemy.com/v2/YOUR_KEY
+
+# Multiple chains
+CHAIN_421614=10000000000000000:https://sepolia-rollup.arbitrum.io/rpc
+```
+
+### Running Locally
+
+Start the full development environment using Zellij:
+
 ```bash
 pnpm start
 ```
 
-Or run individual platforms:
+Or run individual services:
 
-**Cloudflare Worker:**
 ```bash
+# Frontend only
+pnpm frontend:dev
+
+# Server only (Node.js)
+pnpm nodejs:dev
+
+# Server only (Cloudflare Workers)
 pnpm cf-worker:dev
 ```
 
-**Node.js:**
-```bash
-cd platforms/nodejs && pnpm dev
-```
-
-### Running Tests
+### Building
 
 ```bash
-pnpm test
+# Build everything
+pnpm build
+
+# Build frontend only
+pnpm build:frontend
+
+# Build server only
+pnpm build:server
 ```
 
-## How to Use This Template
+### Deployment
 
-### 1. Clone and Rename
+#### Cloudflare Workers
+
+1. Configure your [`wrangler.toml`](platforms/cf-worker/wrangler.toml)
+2. Set secrets in Cloudflare dashboard or via CLI:
+   ```bash
+   wrangler secret put PROSOPO_SITE_PRIVATE_KEY
+   wrangler secret put FAUCET_PRIVATE_KEY
+   ```
+3. Deploy:
+   ```bash
+   pnpm deploy:cf
+   ```
+
+#### Node.js
+
+Build and run the Node.js server:
 
 ```bash
-git clone <this-repo> my-server
-cd my-server
+pnpm build
+cd platforms/nodejs
+node dist/cli.js
 ```
 
-Find and replace all occurrences:
-- `faucet-server-app` → `my-server-app`
-- `faucet-server-cf-worker` → `my-server-cf-worker`
-- `faucet-server-nodejs` → `my-server-nodejs`
-- `template-agnostic-db` → `my-server-db`
+---
 
-### 2. Define Your Environment
+## Usage
 
-Edit `packages/server/src/env.ts` to add your environment variables:
+Users access the faucet via URL with query parameters:
 
-```typescript
-export type Env = {
-  DEV?: string;
-  API_KEY?: string;      // Add your env vars
-  DATABASE_URL?: string;
-};
+```
+https://your-faucet.example.com?chainId=11155111&address=0x...
 ```
 
-### 3. Create Your Database Schema
+**Query Parameters:**
+| Parameter | Description | Example |
+|-----------|-------------|---------|
+| `chainId` | Target chain ID | `11155111` (Sepolia) |
+| `address` | Recipient wallet address | `0x742d35Cc6634C0532925a3b844Bc9e7595f...` |
 
-Edit `packages/server/src/schema/sql/db.sql`:
+## API Reference
 
-```sql
-CREATE TABLE IF NOT EXISTS Users (
-    id TEXT PRIMARY KEY,
-    email TEXT NOT NULL UNIQUE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+### POST `/api/claim`
 
-CREATE TABLE IF NOT EXISTS Posts (
-    id TEXT PRIMARY KEY,
-    user_id TEXT NOT NULL,
-    title TEXT NOT NULL,
-    content TEXT,
-    FOREIGN KEY (user_id) REFERENCES Users(id)
-);
-```
+Request funds from the faucet.
 
-### 4. Add Your API Routes
-
-Create new route files in `packages/server/src/api/`:
-
-```typescript
-// packages/server/src/api/users.ts
-import { Hono } from 'hono';
-import { ServerOptions } from '../types.js';
-import { setup } from '../setup.js';
-import { Env } from '../env.js';
-
-export function getUsersAPI<CustomEnv extends Env>(
-  options: ServerOptions<CustomEnv>,
-) {
-  const app = new Hono<{Bindings: CustomEnv}>()
-    .use(setup({serverOptions: options}))
-    .get('/', async (c) => {
-      const config = c.get('config');
-      // Access database through config.storage or directly via options.getDB
-      return c.json({ users: [] });
-    })
-    .post('/', async (c) => {
-      const body = await c.req.json();
-      // Create user logic
-      return c.json({ success: true });
-    });
-
-  return app;
+**Request Body:**
+```json
+{
+  "token": "prosopo_captcha_token",
+  "chainId": "11155111",
+  "address": "0x742d35Cc6634C0532925a3b844Bc9e7595f..."
 }
 ```
 
-Register it in `packages/server/src/index.ts`:
-
-```typescript
-import { getUsersAPI } from './api/users.js';
-
-export function createServer<CustomEnv extends Env>(
-  options: ServerOptions<CustomEnv>,
-) {
-  const app = new Hono<{Bindings: CustomEnv}>();
-
-  const users = getUsersAPI(options);
-
-  return app
-    .use('/*', corsSetup)
-    .route('/users', users)  // Add your route
-    // ...
+**Success Response:**
+```json
+{
+  "success": true,
+  "txHash": "0x..."
 }
 ```
 
-### 5. Implement Storage Layer (Recommended)
-
-Create a storage abstraction for database operations:
-
-```typescript
-// packages/server/src/storage/index.ts
-import { RemoteSQL } from 'remote-sql';
-
-export class Storage {
-  constructor(private db: RemoteSQL) {}
-
-  async getUsers() {
-    return this.db.query('SELECT * FROM Users');
-  }
-
-  async createUser(id: string, email: string) {
-    return this.db.execute(
-      'INSERT INTO Users (id, email) VALUES (?, ?)',
-      [id, email]
-    );
-  }
+**Error Response:**
+```json
+{
+  "error": "Error message"
 }
 ```
 
-Then integrate it into `setup.ts`:
+## Project Structure
 
-```typescript
-import { Storage } from './storage/index.js';
-
-export type Config<CustomEnv extends Env> = {
-  storage: Storage;
-  env: CustomEnv;
-};
-
-export function setup<CustomEnv extends Env>(
-  options: SetupOptions<CustomEnv>,
-): MiddlewareHandler {
-  const { getDB, getEnv } = options.serverOptions;
-
-  return async (c, next) => {
-    const env = getEnv(c);
-    const db = getDB(c);
-    const storage = new Storage(db);
-
-    c.set('config', { storage, env });
-    return next();
-  };
-}
+```
+faucet/
+├── packages/
+│   ├── frontend/          # Svelte SPA with captcha integration
+│   └── server/            # Hono API server (platform-agnostic)
+├── platforms/
+│   ├── cf-worker/         # Cloudflare Workers deployment
+│   └── nodejs/            # Node.js deployment
+└── package.json           # Root workspace config
 ```
 
-### 6. Add a New Platform (e.g., Bun)
+## Tech Stack
 
-Create a new platform directory:
+- **Frontend:** [Svelte](https://svelte.dev/), [Vite](https://vitejs.dev/)
+- **Server:** [Hono](https://hono.dev/)
+- **Blockchain:** [Viem](https://viem.sh/)
+- **Captcha:** [Prosopo](https://prosopo.io/)
+- **Monorepo:** [pnpm workspaces](https://pnpm.io/workspaces)
 
-```bash
-mkdir -p platforms/bun/src
-```
+## Contributing
 
-Create the platform adapter:
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-```typescript
-// platforms/bun/src/index.ts
-import { createServer, type Env } from 'my-server-app';
-import { RemoteSQL } from 'remote-sql';
-
-// Implement RemoteSQL for your database driver
-class BunSQLite implements RemoteSQL {
-  // ... implementation
-}
-
-type BunEnv = Env & {
-  DB_PATH: string;
-};
-
-const env = process.env as BunEnv;
-const db = new BunSQLite(env.DB_PATH);
-
-const app = createServer<BunEnv>({
-  getDB: () => db,
-  getEnv: () => env,
-});
-
-Bun.serve({
-  port: 3000,
-  fetch: app.fetch,
-});
-```
-
-## Platform-Specific Notes
-
-### Cloudflare Workers
-
-- Uses D1 database via `remote-sql-d1`
-- Environment variables configured in `wrangler.toml`
-- Deploy with `pnpm deploy:production`
-
-### Node.js
-
-- Uses LibSQL (SQLite-compatible) via `remote-sql-libsql`
-- Environment variables loaded from `.env` file
-- Run with `pnpm dev` or build and run `node dist/cli.js`
-
-## Database Abstraction
-
-This template uses [remote-sql](https://github.com/user/remote-sql) for database abstraction. Implementations available:
-
-- `remote-sql-d1` - Cloudflare D1
-- `remote-sql-libsql` - LibSQL/Turso
-- You can create your own by implementing the `RemoteSQL` interface
-
-## Type-Safe Client
-
-The server exports a type-safe client for frontend usage:
-
-```typescript
-import { createClient, type Client } from 'my-server-app';
-
-const client: Client = createClient('http://localhost:3000');
-
-// Type-safe API calls
-const response = await client.users.$get();
-```
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ## License
 
-MIT
+[MIT](LICENSE)

@@ -31,6 +31,7 @@
     "typescript": "^5.9.3"
   },
   "scripts": {
+    "prepublishOnly": "cp ../../LICENSE ./",
     "format:check": "prettier --check .",
     "format": "prettier --write .",
     "build:ts": "tsc --project tsconfig.json",
