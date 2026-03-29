@@ -4,3 +4,6 @@ sqlite.db
 
 # Static assets (copied from frontend build)
 static/
+
+LICENSE
+README.md
