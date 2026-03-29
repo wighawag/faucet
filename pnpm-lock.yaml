@@ -87,7 +87,7 @@ importers:
       remote-sql-d1:
         specifier: ^0.0.6
         version: 0.0.6(@cloudflare/workers-types@4.20260317.1)
-      template-agnostic-server-app:
+      faucet-server-app:
         specifier: workspace:*
         version: link:../../packages/server
       workers-logger:
@@ -142,7 +142,7 @@ importers:
       remote-sql-libsql:
         specifier: ^0.0.6
         version: 0.0.6(@libsql/core@0.17.2)
-      template-agnostic-server-app:
+      faucet-server-app:
         specifier: workspace:*
         version: link:../../packages/server
     devDependencies:

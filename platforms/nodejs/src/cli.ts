@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import "named-logs-context";
-import { createServer, type Env } from "template-agnostic-server-app";
+import { createServer, type Env } from "faucet-server-app";
 import { serve } from "@hono/node-server";
 import { serveStatic } from "@hono/node-server/serve-static";
 import { RemoteLibSQL } from "remote-sql-libsql";
