@@ -1,6 +1,6 @@
 {
   "name": "faucet-server-app",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "server app",
   "license": "MIT",
   "publishConfig": {
