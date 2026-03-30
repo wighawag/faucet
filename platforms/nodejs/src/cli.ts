@@ -36,7 +36,10 @@ async function main() {
     .usage(`${binName} [--port ${defaultPort}]`)
     .description("a server that gives token, protected by captcha")
     .option("-p, --port <port>")
-    .option("--no-captcha", "Disable captcha verification (for localhost development)");
+    .option(
+      "--no-captcha",
+      "Disable captcha verification (for localhost development)",
+    );
 
   program.parse(process.argv);
 
@@ -55,7 +58,7 @@ async function main() {
 
   const env = process.env as NodeJSEnv;
 
-  const db = env.DB;
+  const db = env.DB || ":memory:";
 
   const client = createClient({
     url: db,
