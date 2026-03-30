@@ -17,6 +17,12 @@ npm install -g faucet-server
 serve --port 3000
 ```
 
+For local development without internet (disables captcha verification):
+
+```bash
+npx faucet-server serve --port 3000 --no-captcha
+```
+
 **Configure via environment variables:**
 
 ```bash
@@ -41,6 +47,7 @@ Then access the faucet at: `http://localhost:3000?chainId=31337&address=0x...`
 - 🚀 **Multiple deployment targets** — Cloudflare Workers or Node.js
 - ⚡ **Modern stack** — Svelte frontend, Hono API server, Viem for transactions
 - 📦 **Monorepo architecture** — Clean separation of frontend, server, and platform concerns
+- 🔧 **Development mode** — Disable captcha for localhost testing without internet
 
 ---
 
@@ -84,6 +91,9 @@ For Node.js ([`platforms/nodejs/.env`](platforms/nodejs/.env)):
 PROSOPO_SITE_PRIVATE_KEY=your_prosopo_secret_key
 FAUCET_PRIVATE_KEY=0x...your_wallet_private_key
 CHAIN_31337=10000000000000000:http://localhost:8545
+
+# Optional: Disable captcha for localhost development (or use --no-captcha flag)
+DISABLE_CAPTCHA=true
 ```
 
 For Cloudflare Workers ([`platforms/cf-worker/.dev.vars`](platforms/cf-worker/.dev.vars.default)):
@@ -91,6 +101,9 @@ For Cloudflare Workers ([`platforms/cf-worker/.dev.vars`](platforms/cf-worker/.d
 PROSOPO_SITE_PRIVATE_KEY=your_prosopo_secret_key
 FAUCET_PRIVATE_KEY=0x...your_wallet_private_key
 CHAIN_31337=10000000000000000:http://localhost:8545
+
+# Optional: Disable captcha for local development
+DISABLE_CAPTCHA=true
 ```
 
 #### Chain Configuration

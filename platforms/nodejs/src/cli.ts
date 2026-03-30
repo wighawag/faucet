@@ -35,16 +35,23 @@ async function main() {
     .version(pkg.version)
     .usage(`${binName} [--port ${defaultPort}]`)
     .description("a server that gives token, protected by captcha")
-    .option("-p, --port <port>");
+    .option("-p, --port <port>")
+    .option("--no-captcha", "Disable captcha verification (for localhost development)");
 
   program.parse(process.argv);
 
   type Options = {
     port?: string;
+    captcha?: boolean;
   };
 
   const options: Options = program.opts();
   const port = options.port ? parseInt(options.port) : defaultPort;
+
+  // Set DISABLE_CAPTCHA env var if --no-captcha flag is used
+  if (options.captcha === false) {
+    process.env.DISABLE_CAPTCHA = "true";
+  }
 
   const env = process.env as NodeJSEnv;
 

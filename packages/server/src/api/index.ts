@@ -69,11 +69,14 @@ export function getAPI<CustomEnv extends Env>(
 			const config = c.get('config');
 			const env = config.env;
 
-			// Validate PROSOPO secret
-			const secret = env.PROSOPO_SITE_PRIVATE_KEY;
-			if (!secret) {
-				return c.json({error: 'PROSOPO_SITE_PRIVATE_KEY not configured'}, 500);
-			}
+		// Check if captcha is disabled (for localhost development)
+		const captchaDisabled = env.DISABLE_CAPTCHA === 'true';
+
+		// Validate PROSOPO secret (only required if captcha is enabled)
+		const secret = env.PROSOPO_SITE_PRIVATE_KEY;
+		if (!captchaDisabled && !secret) {
+			return c.json({error: 'PROSOPO_SITE_PRIVATE_KEY not configured'}, 500);
+		}
 
 			// Validate FAUCET_PRIVATE_KEY
 			const faucetPrivateKey = env.FAUCET_PRIVATE_KEY;
@@ -127,12 +130,14 @@ export function getAPI<CustomEnv extends Env>(
 				);
 			}
 
-			// Verify captcha
-			const verified = await verifyProsopoCaptcha(token, secret);
+		// Verify captcha (skip if disabled for localhost development)
+		if (!captchaDisabled) {
+			const verified = await verifyProsopoCaptcha(token, secret!);
 
 			if (!verified) {
 				return c.json({error: 'Captcha verification failed'}, 401);
 			}
+		}
 
 			try {
 				// Create wallet client and send transaction
