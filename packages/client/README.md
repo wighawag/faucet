@@ -15,17 +15,17 @@ yarn add faucet-client
 ## Usage
 
 ```typescript
-import { claimFund } from 'faucet-client';
+import { claimFund } from "faucet-client";
 
 try {
   const txHash = await claimFund({
-    faucetUrl: 'https://faucet.example.com',
+    faucetUrl: "https://faucet.example.com",
     chainId: 11155111,
-    address: '0x...',
+    address: "0x...",
   });
-  console.log('Transaction confirmed:', txHash);
+  console.log("Transaction confirmed:", txHash);
 } catch (error) {
-  console.error('Faucet claim failed:', error.message);
+  console.error("Faucet claim failed:", error.message);
 }
 ```
 
@@ -67,14 +67,14 @@ Use the `forceError` option to test error handling without making real transacti
 try {
   await claimFund(
     {
-      faucetUrl: 'https://faucet.example.com',
+      faucetUrl: "https://faucet.example.com",
       chainId: 11155111,
-      address: '0x...',
+      address: "0x...",
     },
-    { forceError: true }
+    { forceError: true },
   );
 } catch (error) {
-  console.log('Error handling works:', error.message);
+  console.log("Error handling works:", error.message);
   // "Simulated transaction failure (forceError=true)"
 }
 ```

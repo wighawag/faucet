@@ -129,9 +129,7 @@
 			}
 		} catch (err) {
 			const errorMsg =
-				err instanceof Error
-					? err.message
-					: 'Failed to confirm transaction';
+				err instanceof Error ? err.message : 'Failed to confirm transaction';
 			error = errorMsg;
 			notifyError(errorMsg);
 		} finally {
@@ -221,7 +219,9 @@
 	</div>
 
 	{#if forceError}
-		<p class="test-mode">⚠️ Test mode: forceError=true (transaction will fail)</p>
+		<p class="test-mode">
+			⚠️ Test mode: forceError=true (transaction will fail)
+		</p>
 	{/if}
 
 	{#if captchaDisabled}
