@@ -75,10 +75,10 @@ async function main() {
   const staticDir = path.join(__dirname, "../static");
   if (fs.existsSync(staticDir)) {
     // Serve static assets
-    app.use("/*", serveStatic({ root: "./static" }));
+    app.use("/*", serveStatic({ root: staticDir }));
 
     // Fallback to index.html for SPA (any request that didn't match static files)
-    app.get("*", serveStatic({ root: "./static", path: "/index.html" }));
+    app.get("*", serveStatic({ root: staticDir, path: "/index.html" }));
   }
 
   if (db === ":memory:") {
