@@ -1,5 +1,11 @@
 # faucet-server-app
 
+## 0.0.4
+
+### Patch Changes
+
+- disable captchj client side
+
 ## 0.0.3
 
 ### Patch Changes

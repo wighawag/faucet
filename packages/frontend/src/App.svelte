@@ -2,6 +2,10 @@
 	import {ProcaptchaComponent} from '@prosopo/svelte-procaptcha-wrapper';
 
 	const siteKey = import.meta.env.VITE_PROSOPO_SITE_KEY;
+	
+	// Fetch server config to check if captcha is disabled
+	let captchaDisabled = false;
+	let configLoaded = false;
 	let captchaToken = '';
 	let result = '';
 	let txHash = '';
@@ -15,6 +19,24 @@
 
 	// Validate params on load
 	const missingParams = !chainId || !address;
+
+	// Load server config on mount
+	async function loadConfig() {
+		try {
+			const response = await fetch('/api/config');
+			const config = await response.json();
+			captchaDisabled = config.captchaDisabled === true;
+			// When captcha is disabled, set a dummy token to bypass validation
+			if (captchaDisabled) {
+				captchaToken = 'disabled';
+			}
+		} catch (err) {
+			console.error('Failed to load config:', err);
+		} finally {
+			configLoaded = true;
+		}
+	}
+	loadConfig();
 
 	const handleCaptchaVerification = (token: string): void => {
 		console.log('captcha verified', token);
@@ -77,18 +99,24 @@
 		</p>
 		<p>Example: <code>?chainId=11155111&address=0x...</code></p>
 	</div>
+{:else if !configLoaded}
+	<p class="loading">Loading...</p>
 {:else}
 	<div class="params-info">
 		<p><strong>Chain ID:</strong> {chainId}</p>
 		<p><strong>Recipient:</strong> <code>{address}</code></p>
 	</div>
 
-	<ProcaptchaComponent
-		{siteKey}
-		language="en"
-		callback={handleCaptchaVerification}
-		htmlAttributes={{class: 'my-app__procaptcha'}}
-	/>
+	{#if captchaDisabled}
+		<p class="captcha-disabled">Captcha disabled for local development</p>
+	{:else}
+		<ProcaptchaComponent
+			{siteKey}
+			language="en"
+			callback={handleCaptchaVerification}
+			htmlAttributes={{class: 'my-app__procaptcha'}}
+		/>
+	{/if}
 
 	<button onclick={handleSubmit} disabled={isLoading || !captchaToken}>
 		{isLoading ? 'Sending...' : 'Claim Funds'}
@@ -156,5 +184,17 @@
 	button:disabled {
 		opacity: 0.5;
 		cursor: not-allowed;
+	}
+	.captcha-disabled {
+		padding: 0.75rem 1rem;
+		background: #fff3cd;
+		border: 1px solid #ffc107;
+		border-radius: 4px;
+		color: #856404;
+		font-style: italic;
+	}
+	.loading {
+		color: #6c757d;
+		font-style: italic;
 	}
 </style>

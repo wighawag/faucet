@@ -67,6 +67,12 @@ export function getAPI<CustomEnv extends Env>(
 ) {
 	const app = new Hono<{Bindings: CustomEnv}>()
 		.use(setup({serverOptions: options}))
+		.get('/config', async (c) => {
+			const config = c.get('config');
+			const env = config.env;
+			const captchaDisabled = env.DISABLE_CAPTCHA === 'true';
+			return c.json({captchaDisabled});
+		})
 		.post('/claim', async (c) => {
 			const config = c.get('config');
 			const env = config.env;
