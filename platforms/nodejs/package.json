@@ -6,7 +6,7 @@
   },
   "type": "module",
   "bin": {
-    "serve": "./dist/cli.js"
+    "faucet": "./dist/cli.js"
   },
   "files": [
     "dist",

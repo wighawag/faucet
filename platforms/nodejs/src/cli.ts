@@ -26,11 +26,15 @@ async function main() {
   );
   const program = new Command();
 
+  const defaultPort = 34010;
+
+  const binName =
+    typeof pkg.bin === "object" ? Object.keys(pkg.bin)[0] : pkg.name;
   program
-    .name("faucet-nodejs")
+    .name(binName)
     .version(pkg.version)
-    .usage(`faucet-nodejs [--port 2000]`)
-    .description("run faucet server as a node process")
+    .usage(`${binName} [--port ${defaultPort}]`)
+    .description("a server that gives token, protected by captcha")
     .option("-p, --port <port>");
 
   program.parse(process.argv);
@@ -40,7 +44,7 @@ async function main() {
   };
 
   const options: Options = program.opts();
-  const port = options.port ? parseInt(options.port) : 2000;
+  const port = options.port ? parseInt(options.port) : defaultPort;
 
   const env = process.env as NodeJSEnv;
 
