@@ -14,17 +14,17 @@
     ".env.default"
   ],
   "dependencies": {
-    "@hono/node-server": "^1.13.8",
+    "@hono/node-server": "^1.19.12",
     "@libsql/client": "^0.17.2",
     "commander": "^14.0.3",
-    "ldenv": "^0.3.16",
+    "faucet-server-app": "workspace:*",
+    "ldenv": "^0.5.0",
     "named-logs-context": "^0.1.1",
-    "remote-sql-libsql": "^0.0.6",
-    "faucet-server-app": "workspace:*"
+    "remote-sql-libsql": "^0.0.7"
   },
   "devDependencies": {
     "@types/node": "^25.5.0",
-    "as-soon": "^0.1.5",
+    "as-soon": "^0.1.6",
     "set-defaults": "^0.0.5",
     "tsx": "^4.19.3",
     "typescript": "^5.9.3"
