@@ -73,6 +73,38 @@ export function getAPI<CustomEnv extends Env>(
 			const captchaDisabled = env.DISABLE_CAPTCHA === 'true';
 			return c.json({captchaDisabled});
 		})
+		.get('/chain/:chainId', async (c) => {
+			const config = c.get('config');
+			const env = config.env;
+			const chainId = c.req.param('chainId');
+
+			// Validate chainId
+			const chainIdNum = parseInt(chainId, 10);
+			if (isNaN(chainIdNum) || chainIdNum <= 0) {
+				return c.json({error: 'Invalid chainId'}, 400);
+			}
+
+			// Check for chain-specific config
+			const chainConfigKey = `CHAIN_${chainId}` as `CHAIN_${string}`;
+			const chainConfigValue = env[chainConfigKey];
+
+			if (!chainConfigValue) {
+				return c.json(
+					{error: `Faucet not configured for chain ${chainId}`},
+					404,
+				);
+			}
+
+			const chainConfig = parseChainConfig(chainConfigValue);
+			if (!chainConfig) {
+				return c.json(
+					{error: `Invalid chain config for chain ${chainId}`},
+					500,
+				);
+			}
+
+			return c.json({rpcUrl: chainConfig.rpcUrl, chainId: chainIdNum});
+		})
 		.post('/claim', async (c) => {
 			const config = c.get('config');
 			const env = config.env;

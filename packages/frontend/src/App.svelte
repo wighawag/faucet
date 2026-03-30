@@ -1,5 +1,6 @@
 <script lang="ts">
 	import {ProcaptchaComponent} from '@prosopo/svelte-procaptcha-wrapper';
+	import {createPublicClient, http, type Hex} from 'viem';
 
 	const siteKey = import.meta.env.VITE_PROSOPO_SITE_KEY;
 
@@ -11,11 +12,17 @@
 	let txHash = '';
 	let error = '';
 	let isLoading = false;
+	let isPendingConfirmation = false;
+	let confirmations = 0;
+	let hasFatalError = false; // When true, only close button is shown
 
 	// Get chainId and address from URL query parameters
 	const urlParams = new URLSearchParams(window.location.search);
 	const chainId = urlParams.get('chainId') || '';
 	const address = urlParams.get('address') || '';
+
+	// Test mode: force an error (useful for testing error handling)
+	const forceError = urlParams.get('forceError') === 'true';
 
 	// Validate params on load
 	const missingParams = !chainId || !address;
@@ -38,6 +45,25 @@
 	}
 	loadConfig();
 
+	// Helper to notify opener of errors and mark as fatal
+	function notifyError(errorMessage: string): void {
+		hasFatalError = true;
+		if (window.opener) {
+			window.opener.postMessage(
+				{
+					type: 'faucet-error',
+					error: errorMessage,
+				},
+				'*',
+			);
+		}
+	}
+
+	// Handle close button click
+	function handleClose(): void {
+		window.close();
+	}
+
 	const handleCaptchaVerification = (token: string): void => {
 		console.log('captcha verified', token);
 		captchaToken = token;
@@ -45,6 +71,73 @@
 		txHash = '';
 		error = '';
 	};
+
+	async function waitForConfirmation(hash: string): Promise<void> {
+		isPendingConfirmation = true;
+		confirmations = 0;
+
+		try {
+			// Fetch chain config to get RPC URL
+			const chainResponse = await fetch(`/api/chain/${chainId}`);
+			if (!chainResponse.ok) {
+				throw new Error('Failed to get chain configuration');
+			}
+			const chainConfig = await chainResponse.json();
+
+			const client = createPublicClient({
+				chain: {
+					id: parseInt(chainId, 10),
+					name: `Chain ${chainId}`,
+					nativeCurrency: {name: 'ETH', symbol: 'ETH', decimals: 18},
+					rpcUrls: {
+						default: {http: [chainConfig.rpcUrl]},
+					},
+				},
+				transport: http(chainConfig.rpcUrl),
+			});
+
+			// Wait for transaction receipt with at least 1 confirmation
+			const receipt = await client.waitForTransactionReceipt({
+				hash: hash as Hex,
+				confirmations: 1,
+			});
+
+			if (receipt.status === 'success') {
+				confirmations = 1;
+				result = 'Transaction confirmed!';
+
+				// Notify opener window and close
+				if (window.opener) {
+					window.opener.postMessage(
+						{
+							type: 'faucet-success',
+							txHash: hash,
+							chainId,
+							address,
+						},
+						'*',
+					);
+					// Small delay to ensure message is sent
+					setTimeout(() => {
+						window.close();
+					}, 500);
+				}
+			} else {
+				const errorMsg = 'Transaction failed on-chain';
+				error = errorMsg;
+				notifyError(errorMsg);
+			}
+		} catch (err) {
+			const errorMsg =
+				err instanceof Error
+					? err.message
+					: 'Failed to confirm transaction';
+			error = errorMsg;
+			notifyError(errorMsg);
+		} finally {
+			isPendingConfirmation = false;
+		}
+	}
 
 	const handleSubmit = async (): Promise<void> => {
 		if (!captchaToken) {
@@ -61,6 +154,18 @@
 		result = '';
 		txHash = '';
 		error = '';
+		confirmations = 0;
+
+		// Test mode: simulate a failure
+		if (forceError) {
+			// Simulate a brief delay for realism
+			await new Promise((r) => setTimeout(r, 500));
+			const errorMsg = 'Simulated transaction failure (forceError=true)';
+			error = errorMsg;
+			isLoading = false;
+			notifyError(errorMsg);
+			return;
+		}
 
 		try {
 			const response = await fetch('/api/claim', {
@@ -78,13 +183,21 @@
 			const data = await response.json();
 
 			if (response.ok && data.success) {
-				result = 'Funds sent successfully!';
 				txHash = data.txHash;
+				result = 'Transaction submitted, waiting for confirmation...';
+				isLoading = false;
+
+				// Wait for confirmation
+				await waitForConfirmation(data.txHash);
 			} else {
-				error = data.error || 'Claim failed';
+				const errorMsg = data.error || 'Claim failed';
+				error = errorMsg;
+				notifyError(errorMsg);
 			}
 		} catch (err) {
-			error = err instanceof Error ? err.message : 'Unknown error';
+			const errorMsg = err instanceof Error ? err.message : 'Unknown error';
+			error = errorMsg;
+			notifyError(errorMsg);
 		} finally {
 			isLoading = false;
 		}
@@ -107,6 +220,10 @@
 		<p><strong>Recipient:</strong> <code>{address}</code></p>
 	</div>
 
+	{#if forceError}
+		<p class="test-mode">⚠️ Test mode: forceError=true (transaction will fail)</p>
+	{/if}
+
 	{#if captchaDisabled}
 		<p class="captcha-disabled">Captcha disabled for local development</p>
 	{:else}
@@ -118,22 +235,46 @@
 		/>
 	{/if}
 
-	<button onclick={handleSubmit} disabled={isLoading || !captchaToken}>
-		{isLoading ? 'Sending...' : 'Claim Funds'}
-	</button>
-
-	{#if result}
-		<p class="success">{result}</p>
-		{#if txHash}
-			<p class="tx-hash">
-				<strong>Transaction Hash:</strong>
-				<code>{txHash}</code>
-			</p>
+	{#if hasFatalError}
+		{#if error}
+			<div class="error-box">
+				<p class="error">{error}</p>
+			</div>
 		{/if}
-	{/if}
+		<button class="close-button" onclick={handleClose}>Close</button>
+	{:else}
+		<button
+			onclick={handleSubmit}
+			disabled={isLoading || isPendingConfirmation || !captchaToken}
+		>
+			{isLoading ? 'Sending...' : 'Claim Funds'}
+		</button>
 
-	{#if error}
-		<p class="error">{error}</p>
+		{#if txHash}
+			<div class="tx-status">
+				<p class="tx-hash">
+					<strong>Transaction Hash:</strong>
+					<code>{txHash}</code>
+				</p>
+				{#if isPendingConfirmation}
+					<div class="pending">
+						<span class="spinner"></span>
+						<span>Waiting for confirmation...</span>
+					</div>
+				{:else if confirmations > 0}
+					<p class="success">✓ Transaction confirmed!</p>
+					{#if window.opener}
+						<p class="closing">Closing window...</p>
+					{/if}
+				{/if}
+			</div>
+		{:else if result && !txHash}
+			<p class="success">{result}</p>
+		{/if}
+
+		{#if error}
+			<p class="error">{error}</p>
+		{/if}
 	{/if}
 {/if}
 
@@ -193,8 +334,72 @@
 		color: #856404;
 		font-style: italic;
 	}
+	.test-mode {
+		padding: 0.75rem 1rem;
+		background: #f8d7da;
+		border: 1px solid #f5c6cb;
+		border-radius: 4px;
+		color: #721c24;
+		font-weight: bold;
+		margin-bottom: 0.5rem;
+	}
 	.loading {
 		color: #6c757d;
 		font-style: italic;
+	}
+	.tx-status {
+		margin-top: 1rem;
+		padding: 1rem;
+		background: #f8f9fa;
+		border: 1px solid #dee2e6;
+		border-radius: 4px;
+	}
+	.pending {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		color: #856404;
+		margin-top: 0.5rem;
+	}
+	.spinner {
+		width: 16px;
+		height: 16px;
+		border: 2px solid #dee2e6;
+		border-top-color: #007bff;
+		border-radius: 50%;
+		animation: spin 1s linear infinite;
+	}
+	@keyframes spin {
+		to {
+			transform: rotate(360deg);
+		}
+	}
+	.closing {
+		color: #6c757d;
+		font-style: italic;
+		margin-top: 0.5rem;
+	}
+	.error-box {
+		margin-top: 1rem;
+		padding: 1rem;
+		background: #f8d7da;
+		border: 1px solid #f5c6cb;
+		border-radius: 4px;
+	}
+	.error-box .error {
+		margin: 0;
+	}
+	.close-button {
+		margin-top: 1rem;
+		padding: 0.5rem 1.5rem;
+		font-size: 1rem;
+		cursor: pointer;
+		background: #6c757d;
+		color: white;
+		border: none;
+		border-radius: 4px;
+	}
+	.close-button:hover {
+		background: #5a6268;
 	}
 </style>
