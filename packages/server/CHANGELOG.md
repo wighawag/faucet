@@ -1,5 +1,11 @@
 # faucet-server-app
 
+## 0.0.5
+
+### Patch Changes
+
+- client
+
 ## 0.0.4
 
 ### Patch Changes

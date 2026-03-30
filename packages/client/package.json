@@ -1,9 +1,9 @@
 {
 	"name": "faucet-client",
-	"version": "0.0.0",
+	"version": "0.0.1",
 	"publishConfig": {
-    	"access": "public"
- 	},
+		"access": "public"
+	},
 	"type": "module",
 	"main": "./dist/index.js",
 	"module": "./dist/index.js",
@@ -14,7 +14,9 @@
 			"import": "./dist/index.js"
 		}
 	},
-	"files": ["dist"],
+	"files": [
+		"dist"
+	],
 	"devDependencies": {
 		"prettier": "^3.8.1",
 		"typescript": "^5.9.3"
