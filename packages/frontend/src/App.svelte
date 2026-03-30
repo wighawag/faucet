@@ -2,7 +2,7 @@
 	import {ProcaptchaComponent} from '@prosopo/svelte-procaptcha-wrapper';
 
 	const siteKey = import.meta.env.VITE_PROSOPO_SITE_KEY;
-	
+
 	// Fetch server config to check if captcha is disabled
 	let captchaDisabled = false;
 	let configLoaded = false;
