@@ -1,6 +1,6 @@
 {
   "name": "faucet-server",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "publishConfig": {
     "access": "public"
   },
@@ -10,8 +10,8 @@
   },
   "files": [
     "dist",
-    "stc",
-    ".env.default"
+    "src",
+    "static"
   ],
   "dependencies": {
     "@hono/node-server": "^1.19.12",

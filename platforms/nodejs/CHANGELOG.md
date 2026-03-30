@@ -1,5 +1,11 @@
 # faucet-server
 
+## 0.0.4
+
+### Patch Changes
+
+- forgot to publish static folder
+
 ## 0.0.3
 
 ### Patch Changes
