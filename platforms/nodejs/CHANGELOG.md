@@ -1,5 +1,13 @@
 # faucet-server
 
+## 0.0.3
+
+### Patch Changes
+
+- fix
+- Updated dependencies
+  - faucet-server-app@0.0.3
+
 ## 0.0.2
 
 ### Patch Changes
