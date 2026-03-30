@@ -72,7 +72,9 @@
 {#if missingParams}
 	<div class="error-container">
 		<p class="error">Missing required URL parameters.</p>
-		<p>Please provide both <code>chainId</code> and <code>address</code> in the URL.</p>
+		<p>
+			Please provide both <code>chainId</code> and <code>address</code> in the URL.
+		</p>
 		<p>Example: <code>?chainId=11155111&address=0x...</code></p>
 	</div>
 {:else}
