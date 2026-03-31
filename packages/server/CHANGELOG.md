@@ -1,5 +1,11 @@
 # faucet-server-app
 
+## 0.0.6
+
+### Patch Changes
+
+- use shadcn-svelte
+
 ## 0.0.5
 
 ### Patch Changes
