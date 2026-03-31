@@ -1,6 +1,9 @@
 <script lang="ts">
 	import {ProcaptchaComponent} from '@prosopo/svelte-procaptcha-wrapper';
 	import {createPublicClient, http, type Hex} from 'viem';
+	import {Button} from '$lib/components/ui/button';
+	import * as Card from '$lib/components/ui/card';
+	import * as Alert from '$lib/components/ui/alert';
 
 	const siteKey = import.meta.env.VITE_PROSOPO_SITE_KEY;
 
@@ -202,204 +205,121 @@
 	};
 </script>
 
-{#if missingParams}
-	<div class="error-container">
-		<p class="error">Missing required URL parameters.</p>
-		<p>
-			Please provide both <code>chainId</code> and <code>address</code> in the URL.
-		</p>
-		<p>Example: <code>?chainId=11155111&address=0x...</code></p>
-	</div>
-{:else if !configLoaded}
-	<p class="loading">Loading...</p>
-{:else}
-	<div class="params-info">
-		<p><strong>Chain ID:</strong> {chainId}</p>
-		<p><strong>Recipient:</strong> <code>{address}</code></p>
-	</div>
-
-	{#if forceError}
-		<p class="test-mode">
-			⚠️ Test mode: forceError=true (transaction will fail)
-		</p>
-	{/if}
-
-	{#if captchaDisabled}
-		<p class="captcha-disabled">Captcha disabled for local development</p>
-	{:else}
-		<ProcaptchaComponent
-			{siteKey}
-			language="en"
-			callback={handleCaptchaVerification}
-			htmlAttributes={{class: 'my-app__procaptcha'}}
-		/>
-	{/if}
-
-	{#if hasFatalError}
-		{#if error}
-			<div class="error-box">
-				<p class="error">{error}</p>
-			</div>
-		{/if}
-		<button class="close-button" onclick={handleClose}>Close</button>
-	{:else}
-		<button
-			onclick={handleSubmit}
-			disabled={isLoading || isPendingConfirmation || !captchaToken}
-		>
-			{isLoading ? 'Sending...' : 'Claim Funds'}
-		</button>
-
-		{#if txHash}
-			<div class="tx-status">
-				<p class="tx-hash">
-					<strong>Transaction Hash:</strong>
-					<code>{txHash}</code>
-				</p>
-				{#if isPendingConfirmation}
-					<div class="pending">
-						<span class="spinner"></span>
-						<span>Waiting for confirmation...</span>
+<div class="min-h-screen bg-background flex items-center justify-center p-4">
+	<Card.Root class="w-full max-w-md">
+		<Card.Header class="text-center">
+			<Card.Title class="text-2xl">Faucet</Card.Title>
+			<Card.Description>Request testnet tokens</Card.Description>
+		</Card.Header>
+		<Card.Content class="space-y-4">
+			{#if missingParams}
+				<Alert.Root variant="warning">
+					<Alert.Title>Missing Parameters</Alert.Title>
+					<Alert.Description>
+						<p>Please provide both <code class="rounded bg-muted px-1 py-0.5 font-mono text-sm">chainId</code> and <code class="rounded bg-muted px-1 py-0.5 font-mono text-sm">address</code> in the URL.</p>
+						<p class="mt-2 text-xs">Example: <code class="rounded bg-muted px-1 py-0.5 font-mono">?chainId=11155111&address=0x...</code></p>
+					</Alert.Description>
+				</Alert.Root>
+			{:else if !configLoaded}
+				<div class="flex items-center justify-center py-8">
+					<div class="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+				</div>
+			{:else}
+				<div class="space-y-2 rounded-lg bg-muted p-4">
+					<div class="flex items-center justify-between text-sm">
+						<span class="text-muted-foreground">Chain ID</span>
+						<span class="font-medium">{chainId}</span>
 					</div>
-				{:else if confirmations > 0}
-					<p class="success">✓ Transaction confirmed!</p>
-					{#if window.opener}
-						<p class="closing">Closing window...</p>
+					<div class="flex items-center justify-between text-sm">
+						<span class="text-muted-foreground">Recipient</span>
+						<code class="max-w-[200px] truncate rounded bg-background px-2 py-1 font-mono text-xs">{address}</code>
+					</div>
+				</div>
+
+				{#if forceError}
+					<Alert.Root variant="destructive">
+						<Alert.Title>Test Mode</Alert.Title>
+						<Alert.Description>forceError=true (transaction will fail)</Alert.Description>
+					</Alert.Root>
+				{/if}
+
+				{#if captchaDisabled}
+					<Alert.Root variant="warning">
+						<Alert.Title>Development Mode</Alert.Title>
+						<Alert.Description>Captcha disabled for local development</Alert.Description>
+					</Alert.Root>
+				{:else}
+					<div class="flex justify-center">
+						<ProcaptchaComponent
+							{siteKey}
+							language="en"
+							callback={handleCaptchaVerification}
+							htmlAttributes={{class: 'my-app__procaptcha'}}
+						/>
+					</div>
+				{/if}
+
+				{#if hasFatalError}
+					{#if error}
+						<Alert.Root variant="destructive">
+							<Alert.Title>Error</Alert.Title>
+							<Alert.Description>{error}</Alert.Description>
+						</Alert.Root>
+					{/if}
+					<Button onclick={handleClose} variant="secondary" class="w-full">
+						Close
+					</Button>
+				{:else}
+					<Button
+						onclick={handleSubmit}
+						disabled={isLoading || isPendingConfirmation || !captchaToken}
+						class="w-full"
+					>
+						{#if isLoading}
+							<span class="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent"></span>
+							Sending...
+						{:else}
+							Claim Funds
+						{/if}
+					</Button>
+
+					{#if txHash}
+						<div class="space-y-3 rounded-lg border bg-card p-4">
+							<div class="space-y-1">
+								<span class="text-sm font-medium text-muted-foreground">Transaction Hash</span>
+								<code class="block break-all rounded bg-muted p-2 font-mono text-xs">{txHash}</code>
+							</div>
+							{#if isPendingConfirmation}
+								<div class="flex items-center gap-2 text-amber-600">
+									<span class="inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"></span>
+									<span class="text-sm">Waiting for confirmation...</span>
+								</div>
+							{:else if confirmations > 0}
+								<Alert.Root variant="success">
+									<Alert.Title>Success</Alert.Title>
+									<Alert.Description>
+										Transaction confirmed!
+										{#if window.opener}
+											<span class="block text-xs opacity-75">Closing window...</span>
+										{/if}
+									</Alert.Description>
+								</Alert.Root>
+							{/if}
+						</div>
+					{:else if result && !txHash}
+						<Alert.Root variant="success">
+							<Alert.Description>{result}</Alert.Description>
+						</Alert.Root>
+					{/if}
+
+					{#if error && !hasFatalError}
+						<Alert.Root variant="destructive">
+							<Alert.Title>Error</Alert.Title>
+							<Alert.Description>{error}</Alert.Description>
+						</Alert.Root>
 					{/if}
 				{/if}
-			</div>
-		{:else if result && !txHash}
-			<p class="success">{result}</p>
-		{/if}
-
-		{#if error}
-			<p class="error">{error}</p>
-		{/if}
-	{/if}
-{/if}
-
-<style>
-	.success {
-		color: green;
-		font-weight: bold;
-	}
-	.error {
-		color: red;
-		font-weight: bold;
-	}
-	.error-container {
-		padding: 1rem;
-		background: #fff3cd;
-		border: 1px solid #ffc107;
-		border-radius: 4px;
-		margin-bottom: 1rem;
-	}
-	.params-info {
-		padding: 1rem;
-		background: #f8f9fa;
-		border: 1px solid #dee2e6;
-		border-radius: 4px;
-		margin-bottom: 1rem;
-	}
-	.params-info p {
-		margin: 0.25rem 0;
-	}
-	.tx-hash {
-		word-break: break-all;
-		background: #f8f9fa;
-		padding: 0.5rem;
-		border-radius: 4px;
-	}
-	code {
-		background: #e9ecef;
-		padding: 0.125rem 0.25rem;
-		border-radius: 3px;
-		font-family: monospace;
-	}
-	button {
-		margin-top: 1rem;
-		padding: 0.5rem 1rem;
-		font-size: 1rem;
-		cursor: pointer;
-	}
-	button:disabled {
-		opacity: 0.5;
-		cursor: not-allowed;
-	}
-	.captcha-disabled {
-		padding: 0.75rem 1rem;
-		background: #fff3cd;
-		border: 1px solid #ffc107;
-		border-radius: 4px;
-		color: #856404;
-		font-style: italic;
-	}
-	.test-mode {
-		padding: 0.75rem 1rem;
-		background: #f8d7da;
-		border: 1px solid #f5c6cb;
-		border-radius: 4px;
-		color: #721c24;
-		font-weight: bold;
-		margin-bottom: 0.5rem;
-	}
-	.loading {
-		color: #6c757d;
-		font-style: italic;
-	}
-	.tx-status {
-		margin-top: 1rem;
-		padding: 1rem;
-		background: #f8f9fa;
-		border: 1px solid #dee2e6;
-		border-radius: 4px;
-	}
-	.pending {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-		color: #856404;
-		margin-top: 0.5rem;
-	}
-	.spinner {
-		width: 16px;
-		height: 16px;
-		border: 2px solid #dee2e6;
-		border-top-color: #007bff;
-		border-radius: 50%;
-		animation: spin 1s linear infinite;
-	}
-	@keyframes spin {
-		to {
-			transform: rotate(360deg);
-		}
-	}
-	.closing {
-		color: #6c757d;
-		font-style: italic;
-		margin-top: 0.5rem;
-	}
-	.error-box {
-		margin-top: 1rem;
-		padding: 1rem;
-		background: #f8d7da;
-		border: 1px solid #f5c6cb;
-		border-radius: 4px;
-	}
-	.error-box .error {
-		margin: 0;
-	}
-	.close-button {
-		margin-top: 1rem;
-		padding: 0.5rem 1.5rem;
-		font-size: 1rem;
-		cursor: pointer;
-		background: #6c757d;
-		color: white;
-		border: none;
-		border-radius: 4px;
-	}
-	.close-button:hover {
-		background: #5a6268;
-	}
-</style>
+			{/if}
+		</Card.Content>
+	</Card.Root>
+</div>
