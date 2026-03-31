@@ -216,13 +216,28 @@
 				<Alert.Root variant="warning">
 					<Alert.Title>Missing Parameters</Alert.Title>
 					<Alert.Description>
-						<p>Please provide both <code class="rounded bg-muted px-1 py-0.5 font-mono text-sm">chainId</code> and <code class="rounded bg-muted px-1 py-0.5 font-mono text-sm">address</code> in the URL.</p>
-						<p class="mt-2 text-xs">Example: <code class="rounded bg-muted px-1 py-0.5 font-mono">?chainId=11155111&address=0x...</code></p>
+						<p>
+							Please provide both <code
+								class="rounded bg-muted px-1 py-0.5 font-mono text-sm"
+								>chainId</code
+							>
+							and
+							<code class="rounded bg-muted px-1 py-0.5 font-mono text-sm"
+								>address</code
+							> in the URL.
+						</p>
+						<p class="mt-2 text-xs">
+							Example: <code class="rounded bg-muted px-1 py-0.5 font-mono"
+								>?chainId=11155111&address=0x...</code
+							>
+						</p>
 					</Alert.Description>
 				</Alert.Root>
 			{:else if !configLoaded}
 				<div class="flex items-center justify-center py-8">
-					<div class="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+					<div
+						class="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"
+					></div>
 				</div>
 			{:else}
 				<div class="space-y-2 rounded-lg bg-muted p-4">
@@ -232,21 +247,28 @@
 					</div>
 					<div class="flex items-center justify-between text-sm">
 						<span class="text-muted-foreground">Recipient</span>
-						<code class="max-w-[200px] truncate rounded bg-background px-2 py-1 font-mono text-xs">{address}</code>
+						<code
+							class="max-w-[200px] truncate rounded bg-background px-2 py-1 font-mono text-xs"
+							>{address}</code
+						>
 					</div>
 				</div>
 
 				{#if forceError}
 					<Alert.Root variant="destructive">
 						<Alert.Title>Test Mode</Alert.Title>
-						<Alert.Description>forceError=true (transaction will fail)</Alert.Description>
+						<Alert.Description
+							>forceError=true (transaction will fail)</Alert.Description
+						>
 					</Alert.Root>
 				{/if}
 
 				{#if captchaDisabled}
 					<Alert.Root variant="warning">
 						<Alert.Title>Development Mode</Alert.Title>
-						<Alert.Description>Captcha disabled for local development</Alert.Description>
+						<Alert.Description
+							>Captcha disabled for local development</Alert.Description
+						>
 					</Alert.Root>
 				{:else}
 					<div class="flex justify-center">
@@ -276,7 +298,9 @@
 						class="w-full"
 					>
 						{#if isLoading}
-							<span class="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent"></span>
+							<span
+								class="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent"
+							></span>
 							Sending...
 						{:else}
 							Claim Funds
@@ -286,12 +310,19 @@
 					{#if txHash}
 						<div class="space-y-3 rounded-lg border bg-card p-4">
 							<div class="space-y-1">
-								<span class="text-sm font-medium text-muted-foreground">Transaction Hash</span>
-								<code class="block break-all rounded bg-muted p-2 font-mono text-xs">{txHash}</code>
+								<span class="text-sm font-medium text-muted-foreground"
+									>Transaction Hash</span
+								>
+								<code
+									class="block break-all rounded bg-muted p-2 font-mono text-xs"
+									>{txHash}</code
+								>
 							</div>
 							{#if isPendingConfirmation}
 								<div class="flex items-center gap-2 text-amber-600">
-									<span class="inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"></span>
+									<span
+										class="inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"
+									></span>
 									<span class="text-sm">Waiting for confirmation...</span>
 								</div>
 							{:else if confirmations > 0}
@@ -300,7 +331,9 @@
 									<Alert.Description>
 										Transaction confirmed!
 										{#if window.opener}
-											<span class="block text-xs opacity-75">Closing window...</span>
+											<span class="block text-xs opacity-75"
+												>Closing window...</span
+											>
 										{/if}
 									</Alert.Description>
 								</Alert.Root>

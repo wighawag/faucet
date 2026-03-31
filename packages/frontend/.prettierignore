@@ -16,6 +16,6 @@ src/app.html
 ############################################
 
 pnpm-lock.yaml
-src/lib/shadcn/
+src/lib/components/
 
 # Note .prettierignore is being ignored by vscode prettier plugin, see https://github.com/prettier/prettier-vscode/issues/3465
